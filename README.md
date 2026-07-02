@@ -58,3 +58,7 @@ python3 make_review.py iteration-N inputs evals/evals.json
 ## Scope
 
 Planning a single project. Execution tracking (buffer consumption, fever charts) and multi-project drum scheduling are out of scope by design — this repo's name reserves the space for siblings.
+
+## License
+
+[MIT](LICENSE)

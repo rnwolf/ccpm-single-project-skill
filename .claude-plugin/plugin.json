@@ -7,5 +7,6 @@
     "email": "rudiger.wolf@throughputfocus.com"
   },
   "homepage": "https://github.com/rnwolf/ccpm-single-project-skill",
+  "license": "MIT",
   "keywords": ["ccpm", "critical-chain", "scheduling", "project-management", "goldratt"]
 }
