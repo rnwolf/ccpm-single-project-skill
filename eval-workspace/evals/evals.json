@@ -1,6 +1,6 @@
 {
   "skill_name": "ccpm-scheduler",
-  "philosophy": "Compare CCPM-with-skill output against a deterministic traditional-CPM baseline (cpm_baseline.py: ASAP, safe durations, no resource leveling, no buffers, calendars ignored). Success = CCPM schedule is resource-feasible (0 overloaded resource-days, calendar-aware where calendar.csv exists) with :PB/:FB-attached buffers, while the CPM Gantt's utilization panel typically shows red over-capacity blocks and work scheduled across grey outage windows. Task inputs use predecessor_ids/resource_ids columns; website-launch also carries url columns that must pass through to schedule.csv. Side-by-side charts in iteration-2/<eval>/comparison.png.",
+  "philosophy": "Compare CCPM-with-skill output against a deterministic traditional-CPM baseline (cpm_baseline.py: ASAP, safe durations, no resource leveling, no buffers, calendars ignored). Success = CCPM schedule is resource-feasible (0 overloaded resource-days, calendar-aware where calendar.csv exists) with :PB/:FB-attached buffers, while the CPM Gantt's utilization panel typically shows red over-capacity blocks and work scheduled across grey outage windows. Task inputs use predecessor_ids/resource_ids columns; website-launch also carries url columns that must pass through to schedule.csv. make_review.py renders inputs plus both schedules into a single self-contained <iteration>/review.html for side-by-side comparison.",
   "evals": [
     {
       "id": 0,

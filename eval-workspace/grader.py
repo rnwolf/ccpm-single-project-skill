@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Grade iteration-2: CCPM-with-skill vs traditional-CPM baseline.
+"""Grade an eval iteration: CCPM-with-skill vs traditional-CPM baseline.
 
 The question is not "did Claude schedule" but "is the CCPM schedule a real
 CCPM schedule, and does the CPM baseline exhibit the failure modes CCPM
@@ -12,7 +12,7 @@ zero-capacity days. Reads `resource_ids`/`predecessor_ids` schedule
 columns (legacy `resources`/`predecessors` accepted). When input tasks
 carry a `url` column, the CCPM schedule must pass it through.
 
-Usage: python3 grader_it2.py <iteration_dir> <inputs_dir>
+Usage: python3 grader.py <iteration_dir> <inputs_dir>
 """
 import csv, json, math, os, sys
 from collections import defaultdict

@@ -44,14 +44,14 @@ Mentions of CCPM, critical chain, Goldratt, project/feeding buffers, or resource
 
 ## Evals
 
-[`eval-workspace/`](eval-workspace/) contains the benchmark harness used to develop the skill: four project networks (`inputs/`), a deliberately naive traditional-CPM baseline (`cpm_baseline.py`), a grader (`grader_it2.py`), and a single-page report generator (`make_review.py`). `iteration-3/` holds the current results — open `iteration-3/review.html` in a browser to compare CCPM vs CPM per eval, inputs included.
+[`eval-workspace/`](eval-workspace/) contains the benchmark harness used to develop the skill: four project networks (`inputs/`), a deliberately naive traditional-CPM baseline (`cpm_baseline.py`), a grader (`grader.py`), and a single-page report generator (`make_review.py`). `iteration-1/` holds the current results — open `iteration-1/review.html` in a browser to compare CCPM vs CPM per eval, inputs included.
 
 To re-run after changing the skill:
 
 ```bash
 cd eval-workspace
 # (re)build with_skill outputs per inputs/<eval>/, then:
-python3 grader_it2.py iteration-N inputs
+python3 grader.py iteration-N inputs
 python3 make_review.py iteration-N inputs evals/evals.json
 ```
 

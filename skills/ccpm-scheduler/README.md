@@ -101,4 +101,4 @@ Planning a single project. Execution tracking (buffer consumption, fever charts)
 
 ## Evals
 
-Benchmarks comparing the skill's output against a naive traditional-CPM baseline live in [`../../eval-workspace/`](../../eval-workspace/) (see `evals/evals.json` there, and open `iteration-3/review.html` for the side-by-side report).
+Benchmarks comparing the skill's output against a naive traditional-CPM baseline live in [`../../eval-workspace/`](../../eval-workspace/) (see `evals/evals.json` there, and open `iteration-1/review.html` for the side-by-side report).
