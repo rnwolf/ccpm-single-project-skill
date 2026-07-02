@@ -1,0 +1,10 @@
+id,name,type,chain,start,finish,duration,resource_ids,predecessor_ids,url
+W1,Content outline,task,critical,0,6,6,writer,,https://example.com/tickets/W1
+W2,Draft copy,task,none,6,16,10,writer,W1,https://example.com/tickets/W2
+W3,Design mockups,task,critical,6,14,8,designer,W1,https://example.com/tickets/W3
+W4,Build frontend,task,critical,14,26,12,dev,W3,https://example.com/tickets/W4
+W5,Build backend,task,none,0,16,16,dev,,https://example.com/tickets/W5
+W6,Integrate,task,critical,26,34,8,dev,W4;W5,https://example.com/tickets/W6
+W7,Edit copy,task,none,16,22,6,editor,W2,https://example.com/tickets/W7
+W8,Load content,task,critical,34,38,4,writer,W6;W7,https://example.com/tickets/W8
+W9,Launch QA,task,critical,38,44,6,qa,W8,https://example.com/tickets/W9

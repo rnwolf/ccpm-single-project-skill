@@ -1,0 +1,16 @@
+{
+  "name": "ccpm-single-project-skill",
+  "description": "Marketplace for the ccpm-scheduler plugin: Critical Chain Project Management scheduling for Claude Code.",
+  "owner": {
+    "name": "Rudiger Wolf",
+    "email": "rudiger.wolf@throughputfocus.com"
+  },
+  "plugins": [
+    {
+      "name": "ccpm-scheduler",
+      "description": "Build Critical Chain (CCPM) schedules: resource leveling, project and feeding buffers, resource calendars, deterministic validation, and buffer-aware Gantt charts.",
+      "category": "productivity",
+      "source": "./"
+    }
+  ]
+}

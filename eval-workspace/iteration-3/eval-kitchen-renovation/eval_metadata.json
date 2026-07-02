@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "kitchen-renovation",
+  "prompt": "CCPM schedule for kitchen renovation, comfortable estimates, 3 trades; calendar.csv gives availability (builder on another job days 8-10, plumber away days 0-2). (Compared against a deterministic traditional-CPM baseline: no leveling, no buffers, calendar ignored.)",
+  "assertions": []
+}

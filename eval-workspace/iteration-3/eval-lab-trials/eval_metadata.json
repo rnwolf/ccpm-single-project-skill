@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "lab-trials",
+  "prompt": "CCPM schedule; durations already aggressive (no cut); two sink reports. (Compared against a deterministic traditional-CPM baseline: no leveling, no buffers, calendar ignored.)",
+  "assertions": []
+}

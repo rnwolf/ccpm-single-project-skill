@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "website-launch",
+  "prompt": "Build a CCPM schedule for the website relaunch (tasks.csv safe estimates, resources.csv, calendar.csv availability: dev out days 10-13, editor out days 0-5). (Compared against a deterministic traditional-CPM baseline: no leveling, no buffers, calendar ignored.)",
+  "assertions": []
+}
