@@ -6,6 +6,7 @@
 
 | Feeding buffer | Protects | Size (days) | Merges into |
 |---|---|---|---|
-| FB1 | P2 Write protocol → P6 Run trial B → P8 Report B | 1 | start of project buffer |
+| FB1 | P2 Write protocol | 5 | start of P5 Run trial A |
+| FB2 | P2 Write protocol → P6 Run trial B → P8 Report B | 1 | start of the Finish milestone |
 
 Durations are aggressive estimates; overruns are expected roughly half the time and consume buffer — the promise date only moves if a buffer runs dry. Work the critical chain relay-runner style: hand off immediately, no multitasking.

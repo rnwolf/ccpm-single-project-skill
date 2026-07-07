@@ -70,7 +70,9 @@ If a gap exists (no task finishes exactly at `current.start`), the chain ends th
 
 ## Step 5 — Feeding chains
 
-For every non-critical task, find its chain: follow successors until reaching a critical-chain task (the **join point**) or END. Group tasks by join point; within a group, each maximal precedence path is a feeding chain. A task belongs to exactly one feeding chain — if paths share tasks, the shared prefix belongs to the longest chain (tie-break: smaller chain-head id) and shorter branches are their own chains protected by their own buffers, measured only over their exclusive tasks.
+For every non-critical task, find its chain: follow successors until reaching a critical-chain task (the **join point**) or END. Group tasks by join point; within a group, each maximal precedence path is a feeding chain. A task belongs to exactly one feeding chain — if paths share tasks, the shared prefix belongs to the longest chain (tie-break: smaller chain-head id).
+
+**Merges are per edge, not per chain.** EVERY edge from a non-critical task into a critical-chain task is a merge that needs its own feeding buffer — including edges from a task that belongs to another chain (a shared prefix feeding a second join point, like a protocol task that feeds both trial arms). A chain's tail edge is sized on the chain's tasks; an extra edge from task X is sized on X's backward non-critical closure (X plus every non-critical task reachable through X's predecessors). Yes, a shared task's duration then contributes to more than one buffer — conservative double protection beats an unbuffered merge.
 
 ## Step 6 — Buffers (50% rule, default)
 
@@ -92,7 +94,9 @@ Buffers never consume resources and never participate in leveling as demand. Cal
 - `chain`: `critical` | `feeding-1`, `feeding-2`, … (numbered by join-point start ascending) | `none`
 - Buffers get ids `PB`, `FB1`, `FB2`, … and empty `resources`.
 - Buffer rows attach with the buffer link types: feeding buffers get `<last chain task>:FB`, the project buffer gets `<last CC task>:PB`. Never attach a buffer with a plain FS link — the validator rejects it.
-- **Buffers must also merge** — a buffer with no successor dangles outside the network. Encode the merge on the protected side: the critical-chain task where a feeding chain joins lists `<FBid>:FB` among its predecessors; for a chain that runs to the project end, the project buffer row lists `<FBid>:FB`. Every feeding buffer therefore has exactly one successor (the validator enforces this). The project buffer itself has no successor — its end IS the commitment date.
+- **Buffers must also merge** — a buffer with no successor dangles outside the network. Encode the merge on the protected side: the critical-chain task where a feeding chain joins lists `<FBid>:FB` among its predecessors. Every feeding buffer has exactly one successor (the validator enforces this).
+- **The buffer REPLACES the direct edge.** When a feeding buffer covers the merge X→J, the direct `X` token is removed from J's `predecessor_ids` — the dependency now routes X → FB → J and is transitively preserved. Keeping the plain edge alongside the buffer is a **bypass**: any FS-semantics reader would push J the moment X slips, and the buffer would absorb nothing. The validator rejects bypasses, and also rejects unbuffered merges when there is room (>= 1 day) for a buffer; a direct edge is tolerated only in the zero-gap no-room case, which the summary flags as effectively critical.
+- **Chains that run to the project end merge into a `FINISH` milestone**, not into the project buffer. When any end-running feeding buffer exists, emit a zero-duration critical-chain task `FINISH` at the last critical task's finish, with the terminal critical task and those buffers as predecessors; the project buffer then attaches as `FINISH:PB`. The project buffer always has exactly ONE predecessor (`<terminal CC task or FINISH>:PB`) and no successor — its end IS the commitment date.
 - Keep link-type notation intact in `predecessor_ids` — the Gantt script reads it to draw FS/SS/FF/SF arrows and dashed PB/FB buffer attachments with a commitment-date marker.
 
 Then run `uv run scripts/validate_schedule.py schedule.csv tasks.csv resources.csv [calendar.csv]` and resolve any reported violation before presenting.

@@ -161,6 +161,9 @@ def main(schedule_path, out_path, title="CCPM Schedule",
             color, hatch = "grey", None
         ax.barh(y, dur, left=r["start"], height=0.6, color=color,
                 hatch=hatch, edgecolor="black", linewidth=0.5, zorder=2)
+        if dur == 0:  # zero-duration milestone (e.g. the Finish milestone)
+            ax.plot([r["start"]], [y], marker="D", color=color,
+                    markeredgecolor="black", markersize=8, zorder=3)
         res = field(r, "resource_ids", "resources").replace(";", ",")
         if res:
             ax.text(r["finish"] + 0.2, y, res, va="center", fontsize=8,

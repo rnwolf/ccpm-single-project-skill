@@ -22,8 +22,13 @@ infeasible under deadline T, retry with T+1) -> critical chain (resource
 links + calendar-gap continuation) -> feeding chains -> buffers (50% rule;
 a feeding buffer bridges the gap to its anchor; feeding-chain shifts drag
 non-critical external predecessors; zero-length buffers are omitted and the
-chain flagged) -> merge links (each FB's protected successor lists
-`<FBid>:FB`) -> schedule.csv + summary.md.
+chain flagged) -> merges: EVERY edge from non-critical work into the
+critical chain gets its own feeding buffer, the protected successor lists
+the buffer as `<FBid>:FB`, and the direct feeder->join link is rerouted
+through the buffer (a plain edge kept alongside would bypass it). Feeding
+chains that run to the project end merge into a zero-duration FINISH
+milestone on the critical chain, and the project buffer attaches to that
+milestone alone -> schedule.csv + summary.md.
 
 Verify the output with validate_schedule.py and render it with
 plot_gantt.py.
@@ -396,29 +401,71 @@ def build(tasks_path, resources_path, calendar_path, out_dir, title):
 
     assert min(start.values()) >= 0
 
-    # ---- chain labels, buffered/unbuffered split, merge links ----
+    # ---- chain labels ----
     chain_label = {}
     for n, ch in enumerate(sorted(chains, key=lambda c: (c["anchor"], c["tail"])), 1):
         ch["n"] = n
         for m in ch["tasks"]:
             chain_label[m] = f"feeding-{n}"
-    unbuffered, merge_links = [], defaultdict(list)
-    for ch in sorted(chains, key=lambda c: c["n"]):
-        f0 = max(fin[m] for m in ch["tasks"])
-        if ch["anchor"] - f0 < 1:
-            # No room for a buffer: the chain is effectively critical.
-            # Never emit a zero-length buffer - flag the chain instead.
-            unbuffered.append(ch)
-            continue
-        # the protected successor lists the buffer back, so the buffer
-        # merges into the network instead of dangling
-        succ_id = ch["join"] if ch["join"] else "PB"
-        merge_links[succ_id].append(f"FB{ch['n']}:FB")
+
+    # ---- merge points: EVERY edge from non-critical work into the critical
+    # chain (or to the project end) is a merge and gets its own feeding
+    # buffer. Chain-tail merges are sized on the chain; extra edges (a task
+    # that also feeds the chain elsewhere, like a shared prefix) are sized
+    # on the feeder's backward non-critical closure. ----
+    def back_closure(x):
+        seen, stack = {x}, [x]
+        while stack:
+            t = stack.pop()
+            for p, _, _ in net.T[t]["links"]:
+                if p not in cc_set and p not in seen:
+                    seen.add(p)
+                    stack.append(p)
+        return seen
+
+    merges = [dict(attach=ch["tasks"][-1], join=ch["join"], size=ch["size"],
+                   tasks=ch["tasks"]) for ch in chains]
+    covered = {(m["attach"], m["join"]) for m in merges}
+    for x in sorted(noncc):
+        for j in sorted({s for s, _, _ in net.succ[x] if s in cc_set}):
+            if (x, j) in covered:
+                continue
+            closure = sorted(back_closure(x))
+            size = math.ceil(0.5 * sum(dur[i] for i in closure))
+            want = fin[x] - (start[j] - size)
+            for d in range(max(want, 0), 0, -1):
+                new = try_shift(closure, d)
+                if new is not None:
+                    for m, s in new.items():
+                        start[m] = s
+                        fin[m] = s + dur[m]
+                    break
+            merges.append(dict(attach=x, join=j, size=size, tasks=closure))
+
+    for mg in merges:
+        mg["anchor"] = start[mg["join"]] if mg["join"] else last_cc_fin
+    buffered = [mg for mg in sorted(merges, key=lambda m: (m["anchor"], m["attach"]))
+                if mg["anchor"] - fin[mg["attach"]] >= 1]
+    # No room for a buffer: never emit a zero-length one - flag the merge.
+    unprotected = [mg for mg in merges if mg not in buffered]
+
+    finish_needed = any(mg["join"] is None for mg in buffered)
+    merge_links, reroute = defaultdict(list), defaultdict(set)
+    for m, mg in enumerate(buffered, 1):
+        mg["id"] = f"FB{m}"
+        succ = mg["join"] if mg["join"] else "FINISH"
+        merge_links[succ].append(f"FB{m}:FB")
+        if mg["join"]:
+            # the buffer REPLACES the direct feeder->join link: a plain edge
+            # kept alongside it would bypass the buffer (feeder slippage
+            # would push the join task instead of consuming buffer)
+            reroute[mg["join"]].add(mg["attach"])
 
     # ---- emit schedule.csv ----
-    def with_merges(tid, base):
-        extra = merge_links.get(tid, [])
-        return ";".join(([base] if base else []) + extra)
+    def out_preds(tid, base):
+        toks = [t for t in (base or "").replace(";", " ").replace(",", " ").split()
+                if not (LINK_RE.match(t) and LINK_RE.match(t).group("id") in reroute.get(tid, ()))]
+        return ";".join(toks + merge_links.get(tid, []))
 
     rows = []
     for i in sorted(ids, key=lambda i: (start[i], fin[i], i)):
@@ -426,22 +473,30 @@ def build(tasks_path, resources_path, calendar_path, out_dir, title):
                          chain="critical" if i in cc_set else chain_label.get(i, "none"),
                          start=start[i], finish=fin[i], duration=dur[i],
                          resource_ids=";".join(net.T[i]["res"]),
-                         predecessor_ids=with_merges(i, net.T[i]["predstr"]),
+                         predecessor_ids=out_preds(i, net.T[i]["predstr"]),
                          url=net.T[i]["url"]))
-    for ch in sorted(chains, key=lambda c: c["n"]):
-        if ch in unbuffered:
-            continue
-        f0 = max(fin[m] for m in ch["tasks"])
-        rows.append(dict(id=f"FB{ch['n']}", name=f"Feeding buffer {ch['n']}",
-                         type="feeding_buffer", chain=f"feeding-{ch['n']}",
-                         start=f0, finish=ch["anchor"], duration=ch["anchor"] - f0,
-                         resource_ids="", predecessor_ids=f"{ch['tail']}:FB", url=""))
+    for mg in buffered:
+        f0 = fin[mg["attach"]]
+        rows.append(dict(id=mg["id"], name=f"Feeding buffer {mg['id'][2:]}",
+                         type="feeding_buffer",
+                         chain=chain_label.get(mg["attach"], "none"),
+                         start=f0, finish=mg["anchor"], duration=mg["anchor"] - f0,
+                         resource_ids="", predecessor_ids=f"{mg['attach']}:FB", url=""))
     last_cc = max(cc, key=lambda i: fin[i])
+    if finish_needed:
+        # zero-duration milestone on the critical chain: end-running feeding
+        # buffers merge here, and the project buffer hangs off it alone
+        rows.append(dict(id="FINISH", name="Finish", type="task",
+                         chain="critical", start=last_cc_fin, finish=last_cc_fin,
+                         duration=0, resource_ids="",
+                         predecessor_ids=out_preds("FINISH", last_cc), url=""))
+        pb_pred = "FINISH:PB"
+    else:
+        pb_pred = f"{last_cc}:PB"
     rows.append(dict(id="PB", name="Project buffer", type="project_buffer",
                      chain="critical", start=last_cc_fin,
                      finish=last_cc_fin + pb_size, duration=pb_size,
-                     resource_ids="",
-                     predecessor_ids=with_merges("PB", f"{last_cc}:PB"), url=""))
+                     resource_ids="", predecessor_ids=pb_pred, url=""))
     os.makedirs(out_dir, exist_ok=True)
     cols = ["id", "name", "type", "chain", "start", "finish", "duration",
             "resource_ids", "predecessor_ids", "url"]
@@ -460,20 +515,20 @@ def build(tasks_path, resources_path, calendar_path, out_dir, title):
          f"- **Critical chain length**: {sum(dur[i] for i in cc)} working days"
          f" (work finishes day {last_cc_fin})",
          f"- **Project buffer**: {pb_size} days → **promised completion: day {promise}**", ""]
-    buffered = [ch for ch in chains if ch not in unbuffered]
     if buffered:
         L.append("| Feeding buffer | Protects | Size (days) | Merges into |")
         L.append("|---|---|---|---|")
-        for ch in sorted(buffered, key=lambda c: c["n"]):
-            f0 = max(fin[m] for m in ch["tasks"])
-            anchor = link(ch["join"]) if ch["join"] else "project buffer"
-            L.append(f"| FB{ch['n']} | {' → '.join(link(m) for m in ch['tasks'])} "
-                     f"| {ch['anchor'] - f0} | start of {anchor} |")
+        for mg in buffered:
+            f0 = fin[mg["attach"]]
+            anchor = link(mg["join"]) if mg["join"] else "the Finish milestone"
+            L.append(f"| {mg['id']} | {' → '.join(link(m) for m in mg['tasks'])} "
+                     f"| {mg['anchor'] - f0} | start of {anchor} |")
         L.append("")
-    for ch in unbuffered:
-        L.append(f"**Warning**: feeding chain {' → '.join(link(m) for m in ch['tasks'])} "
-                 f"has no room for a feeding buffer — it is effectively critical. "
-                 f"Watch it as closely as the critical chain.")
+    for mg in unprotected:
+        where = link(mg["join"]) if mg["join"] else "the project end"
+        L.append(f"**Warning**: the merge of {' → '.join(link(m) for m in mg['tasks'])} "
+                 f"into {where} has no room for a feeding buffer — that path is "
+                 f"effectively critical. Watch it as closely as the critical chain.")
         L.append("")
     if net.has_calendar:
         L.append("Resource availability from `calendar.csv` is honored: tasks are "
@@ -487,8 +542,9 @@ def build(tasks_path, resources_path, calendar_path, out_dir, title):
     with open(os.path.join(out_dir, "summary.md"), "w") as f:
         f.write("\n".join(L) + "\n")
     print(f"{title}: T={T0}, CC={'->'.join(cc)} ({sum(dur[i] for i in cc)}d), "
-          f"PB={pb_size}, promise=day {promise}, {len(chains)} feeding chain(s), "
-          f"{len(unbuffered)} unbuffered")
+          f"PB={pb_size}, promise=day {promise}, {len(merges)} merge(s), "
+          f"{len(buffered)} buffered, {len(unprotected)} unprotected"
+          + (", FINISH milestone" if finish_needed else ""))
 
 
 if __name__ == "__main__":

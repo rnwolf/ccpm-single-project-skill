@@ -83,7 +83,7 @@ Tasks run **contiguously** — they never pause across an outage, so a task is s
 
 Three deliverables:
 
-- **`schedule.csv`** — every task and buffer with `start`/`finish` day offsets, chain membership (`critical`, `feeding-n`), and link notation. Buffers attach via CCPM-specific `:PB`/`:FB` link types (they behave differently from work during execution — slippage consumes them rather than pushing them), and each feeding buffer also *merges*: the critical-chain task it protects (or the project buffer) lists it back as `FBn:FB`, so no buffer dangles without a successor.
+- **`schedule.csv`** — every task and buffer with `start`/`finish` day offsets, chain membership (`critical`, `feeding-n`), and link notation. Buffers attach via CCPM-specific `:PB`/`:FB` link types (they behave differently from work during execution — slippage consumes them rather than pushing them), and each feeding buffer also *merges*: the critical-chain task it protects lists it back as `FBn:FB` *instead of* the direct feeder link (rerouted through the buffer, so nothing bypasses it). Feeding chains that run to the project end merge into a zero-duration `FINISH` milestone; the project buffer's only predecessor is the terminal critical-chain task (or that milestone).
 - **`summary.md`** — critical chain sequence, project duration, buffer sizes, and the promised completion date (= end of the project buffer). Task/resource urls become clickable links here.
 - **`gantt.png`** — the chart: critical chain in cross-hatched dark red, feeding chains colored, buffers hatched gold/khaki with a commitment-date diamond, dependency arrows (non-FS links labeled), and a resource-utilization panel where red means over capacity and grey hatching means unavailable.
 

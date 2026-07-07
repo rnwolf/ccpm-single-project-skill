@@ -3,7 +3,7 @@
     {
       "text": "schedule.csv parses",
       "passed": true,
-      "evidence": "parsed 10 rows"
+      "evidence": "parsed 12 rows"
     },
     {
       "text": "CCPM: zero overloaded resource-days (leveling worked)",
@@ -18,12 +18,12 @@
     {
       "text": "CCPM: feeding buffer(s) protect non-critical chains",
       "passed": true,
-      "evidence": "1 feeding buffer(s)"
+      "evidence": "2 feeding buffer(s)"
     },
     {
       "text": "CCPM: buffers attached via :PB/:FB link types",
       "passed": true,
-      "evidence": "PB=P7:PB;FB1:FB; FB1=P8:FB"
+      "evidence": "PB=FINISH:PB; FB1=P2:FB; FB2=P8:FB"
     },
     {
       "text": "CCPM: project buffer ~50% of critical chain",
@@ -33,7 +33,7 @@
     {
       "text": "CCPM: feeding buffers merge into the critical chain (successor :FB links)",
       "passed": true,
-      "evidence": "FB1->PB"
+      "evidence": "FB1->P5; FB2->FINISH"
     },
     {
       "text": "gantt.png exists and is a valid PNG",

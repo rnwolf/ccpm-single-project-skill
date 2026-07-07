@@ -53,9 +53,9 @@ C and E are non-critical; they reach the chain at F. **Feeding chain: C → E**,
 | D   | Integrate  | task           | critical  | 15    | 25     | 10       | blue         | B               |
 | E   | Test rig   | task           | feeding-1 | 15    | 20     | 5        | green        | C               |
 | FB1 | Feed buffer| feeding_buffer | feeding-1 | 20    | 25     | 5        |              | E:FB            |
-| F   | Commission | task           | critical  | 25    | 30     | 5        | red          | D;E;FB1:FB      |
+| F   | Commission | task           | critical  | 25    | 30     | 5        | red          | D;FB1:FB        |
 | PB  | Proj buffer| project_buffer | critical  | 30    | 45     | 15       |              | F:PB            |
 
-Task-to-task links here are plain FS; the buffers attach with the CCPM-specific `:FB` / `:PB` types, drawn as dashed arrows. Note the merge on the protected side: F lists `FB1:FB` among its predecessors, so the feeding buffer has an explicit successor instead of dangling — its end (25) is anchored to F's start, the task it protects. PB's end (45) is the commitment date and has no successor. If the input used typed links (`A:SS+2` etc.) they would appear unchanged in this column and as labeled arrows on the Gantt.
+Task-to-task links here are plain FS; the buffers attach with the CCPM-specific `:FB` / `:PB` types, drawn as dashed arrows. Note the merge on the protected side: F lists `FB1:FB` among its predecessors, and the input's direct `E` link was REROUTED through the buffer (E → FB1 → F) — keeping `E` alongside `FB1:FB` would be a bypass that lets E's slippage push F directly, absorbing nothing. PB's end (45) is the commitment date and has no successor. If the input used typed links (`A:SS+2` etc.) they would appear unchanged in this column and as labeled arrows on the Gantt.
 
 Project duration without buffer: 30 days. Promised completion: day 45.
