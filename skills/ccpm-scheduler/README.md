@@ -12,6 +12,7 @@ This README is for humans. The file Claude actually reads is [SKILL.md](SKILL.md
 | `references/algorithm.md` | Normative spec: ALAP pass, leveling tie-breaks, chain tracing, buffer sizing, calendars |
 | `references/worked-example.md` | A 6-task network walked through every step with exact numbers |
 | `scripts/validate_inputs.py` | Checks the input files before scheduling (cycles, ids, durations, resources, calendar) — exit 0 = valid |
+| `scripts/build_schedule.py` | Deterministic CCPM schedule builder (the reference implementation of the algorithm) — writes `schedule.csv` + `summary.md` |
 | `scripts/plot_gantt.py` | Renders `schedule.csv` as a buffer-aware Gantt PNG with a resource-utilization panel |
 | `scripts/validate_schedule.py` | Checks a produced schedule (precedence, capacity, buffer placement) — exit 0 = valid |
 | `scripts/*.py.lock` | uv lock files pinning each script's exact dependency versions |
@@ -92,12 +93,16 @@ With uv installed there is nothing to set up — dependencies resolve automatica
 
 ```bash
 uv run scripts/validate_inputs.py tasks.csv resources.csv [calendar.csv]
+uv run scripts/build_schedule.py tasks.csv resources.csv [--calendar calendar.csv] \
+    [--out-dir DIR] [--title "My project"]
 uv run scripts/validate_schedule.py schedule.csv tasks.csv resources.csv [calendar.csv]
 uv run scripts/plot_gantt.py schedule.csv gantt.png --resources resources.csv \
     [--calendar calendar.csv] [--title "My project"] [--critical-label "Critical path"]
 ```
 
 The first `plot_gantt.py` run downloads matplotlib into uv's cache; subsequent runs are instant.
+
+`build_schedule.py` is deterministic — the same input always yields byte-identical output — so it doubles as a standalone command-line CCPM scheduler, independent of Claude: validate inputs, build, validate the schedule, plot. Claude's role in the skill is normalizing messy input into the CSV contract, choosing assumptions (safe vs aggressive estimates), and explaining the result.
 
 The validator is also what the skill runs on its own output before showing you anything — a schedule that violates precedence, overloads a resource, or misplaces a buffer is rejected.
 

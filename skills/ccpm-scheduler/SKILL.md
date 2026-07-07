@@ -35,7 +35,7 @@ If the user gives only one duration per task, ask (or state the assumption) whet
 
 ## Workflow
 
-Work through these steps in order. **Do the computation by writing and running a Python script**, not by mental arithmetic — schedules have too many interacting constraints to track reliably in your head, and a script makes the result reproducible.
+Work through these steps in order. **Do the computation with the bundled deterministic builder** — `uv run scripts/build_schedule.py tasks.csv resources.csv [--calendar calendar.csv] --out-dir <dir> --title "..."` implements steps 2-5 of `references/algorithm.md` exactly and writes `schedule.csv` + `summary.md`. Never do the arithmetic in your head: schedules have too many interacting constraints. Only write custom code when the input genuinely exceeds the builder (then follow `references/algorithm.md` literally, including tie-breaks, and still validate the result); steps 2-5 below describe what the builder does so you can sanity-check its output and explain it to the user.
 
 Run the bundled scripts with `uv run` — they carry PEP 723 inline dependency metadata plus a `.lock` file, so uv provisions the right environment (matplotlib for the chart) automatically. If uv is unavailable, fall back to `python3` with matplotlib installed.
 

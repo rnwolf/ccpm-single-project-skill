@@ -1,6 +1,6 @@
 # CCPM Scheduling Algorithm — deterministic specification
 
-This is the normative spec. Every rule here exists so that the same input always produces the same schedule — that property is what lets the logic later become a CLI tool and lets users trust reruns. When implementing, follow the steps and tie-breaks literally.
+This is the normative spec. Every rule here exists so that the same input always produces the same schedule — that property is what lets users trust reruns. `scripts/build_schedule.py` is the reference implementation (a stdlib-only CLI); when implementing independently, follow the steps and tie-breaks literally and expect byte-identical output.
 
 All times are integer working-day offsets. A task occupies the half-open interval `[start, finish)` with `finish = start + duration`. Two tasks overlap iff `start_a < finish_b and start_b < finish_a`.
 
