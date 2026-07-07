@@ -70,7 +70,13 @@ green,2,4,0
 red,0,10,0
 ```
 
-Overrides a resource's capacity on days `[from, to)` (working-day offsets, half-open). `0` = unavailable (holiday, another project); higher values model temporary extra capacity. Tasks run **contiguously** — they never pause across an outage, so a task is scheduled entirely before or entirely after it.
+Overrides a resource's capacity on the day range `[from, to)`. The bracket notation is deliberate — it is the mathematical convention for a **half-open interval**: the square bracket `[` means `from` is **included**, the round bracket `)` means `to` is **excluded**. So `green,2,4,0` means green is unavailable on days 2 and 3, and back at work on day 4 — the range covers `to − from` days, never `to` itself.
+
+Why half-open? It matches how the schedule itself works: a task with `start=2, finish=4` occupies days 2 and 3 too, so a calendar row and a task span with the same numbers cover exactly the same days, and adjacent ranges like `[0,5)` and `[5,10)` butt together without overlapping or leaving a gap.
+
+Days are working-day offsets from day 0 (the same axis as the Gantt chart). `capacity 0` = unavailable (holiday, another project); a higher value models temporary extra capacity (e.g. a contractor). Outside the listed ranges, the resource's default capacity from `resources.csv` applies. Ranges for the same resource must not overlap.
+
+Tasks run **contiguously** — they never pause across an outage, so a task is scheduled entirely before or entirely after it.
 
 ### Outputs
 
