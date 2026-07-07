@@ -31,6 +31,11 @@
       "evidence": "PB=10, CC=19"
     },
     {
+      "text": "CCPM: feeding buffers merge into the critical chain (successor :FB links)",
+      "passed": true,
+      "evidence": "FB1->K4"
+    },
+    {
       "text": "CCPM: calendar respected (no work on unavailable days)",
       "passed": true,
       "evidence": "0 day(s) of work during resource outages"
@@ -42,9 +47,9 @@
     }
   ],
   "summary": {
-    "passed": 8,
+    "passed": 9,
     "failed": 0,
-    "total": 8,
+    "total": 9,
     "pass_rate": 1.0
   }
 }

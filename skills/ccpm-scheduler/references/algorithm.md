@@ -92,6 +92,7 @@ Buffers never consume resources and never participate in leveling as demand. Cal
 - `chain`: `critical` | `feeding-1`, `feeding-2`, … (numbered by join-point start ascending) | `none`
 - Buffers get ids `PB`, `FB1`, `FB2`, … and empty `resources`.
 - Buffer rows attach with the buffer link types: feeding buffers get `<last chain task>:FB`, the project buffer gets `<last CC task>:PB`. Never attach a buffer with a plain FS link — the validator rejects it.
+- **Buffers must also merge** — a buffer with no successor dangles outside the network. Encode the merge on the protected side: the critical-chain task where a feeding chain joins lists `<FBid>:FB` among its predecessors; for a chain that runs to the project end, the project buffer row lists `<FBid>:FB`. Every feeding buffer therefore has exactly one successor (the validator enforces this). The project buffer itself has no successor — its end IS the commitment date.
 - Keep link-type notation intact in `predecessor_ids` — the Gantt script reads it to draw FS/SS/FF/SF arrows and dashed PB/FB buffer attachments with a commitment-date marker.
 
 Then run `uv run scripts/validate_schedule.py schedule.csv tasks.csv resources.csv [calendar.csv]` and resolve any reported violation before presenting.

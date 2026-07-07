@@ -4,7 +4,7 @@
 - **Critical chain length**: 19 working days (work finishes day 22)
 - **Project buffer**: 10 days → **promised completion: day 32**
 
-| Feeding buffer | Protects | Size (days) | Anchored to |
+| Feeding buffer | Protects | Size (days) | Merges into |
 |---|---|---|---|
 | FB1 | K2 Electrics | 2 | start of K4 Cabinets |
 

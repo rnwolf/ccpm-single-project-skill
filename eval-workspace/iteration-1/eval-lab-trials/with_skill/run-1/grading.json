@@ -23,12 +23,17 @@
     {
       "text": "CCPM: buffers attached via :PB/:FB link types",
       "passed": true,
-      "evidence": "PB=P7:PB; FB1=P8:FB"
+      "evidence": "PB=P7:PB;FB1:FB; FB1=P8:FB"
     },
     {
       "text": "CCPM: project buffer ~50% of critical chain",
       "passed": true,
       "evidence": "PB=12, CC=24"
+    },
+    {
+      "text": "CCPM: feeding buffers merge into the critical chain (successor :FB links)",
+      "passed": true,
+      "evidence": "FB1->PB"
     },
     {
       "text": "gantt.png exists and is a valid PNG",
@@ -37,9 +42,9 @@
     }
   ],
   "summary": {
-    "passed": 7,
+    "passed": 8,
     "failed": 0,
-    "total": 7,
+    "total": 8,
     "pass_rate": 1.0
   }
 }

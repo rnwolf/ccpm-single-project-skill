@@ -31,15 +31,20 @@
       "evidence": "PB=12, CC=23"
     },
     {
+      "text": "CCPM: feeding buffers merge into the critical chain (successor :FB links)",
+      "passed": true,
+      "evidence": "FB1->R6; FB2->R9"
+    },
+    {
       "text": "gantt.png exists and is a valid PNG",
       "passed": true,
       "evidence": "ok"
     }
   ],
   "summary": {
-    "passed": 7,
+    "passed": 8,
     "failed": 0,
-    "total": 7,
+    "total": 8,
     "pass_rate": 1.0
   }
 }

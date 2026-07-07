@@ -36,6 +36,10 @@ Checks:
      nothing — if a feeding chain has no room for its buffer, the schedule
      should omit the buffer and flag the chain instead of emitting a
      zero-day row.
+ 11. Every feeding buffer MERGES: exactly one row lists it as a predecessor
+     via `<FBid>:FB`, and that successor is a critical-chain task (the join
+     point) or the project buffer (for chains that run to the project end).
+     A buffer with no successor dangles outside the network.
 
 Exit code 0 = valid, 1 = violations found (printed to stdout).
 """
@@ -144,10 +148,15 @@ def main(schedule_path, tasks_path, resources_path, calendar_path=None):
                     f"> {tid}.{sa}={r[sa]}")
             # 8. buffer link discipline
             expected = BUFFER_LINK.get(r["type"])
-            if expected and ltype != expected:
+            pred_is_fb = rows[pid]["type"] == "feeding_buffer"
+            if expected and not pred_is_fb and ltype != expected:
                 errors.append(f"{tid}: buffer must attach via :{expected} link, got {ltype}")
-            if ltype in ("PB", "FB") and r["type"] not in BUFFER_LINK:
-                errors.append(f"{tid}: {ltype} link used on non-buffer row")
+            if pred_is_fb and ltype != "FB":
+                errors.append(f"{tid}: link from feeding buffer {pid} must use :FB, got {ltype}")
+            if ltype == "FB" and not (r["type"] == "feeding_buffer" or pred_is_fb):
+                errors.append(f"{tid}: :FB link must involve a feeding buffer")
+            if ltype == "PB" and r["type"] != "project_buffer":
+                errors.append(f"{tid}: :PB link used on a non-project-buffer row")
 
     # 4. resource capacity (day-by-day, calendar-aware)
     usage = defaultdict(lambda: defaultdict(int))  # resource -> day -> demand
@@ -189,6 +198,26 @@ def main(schedule_path, tasks_path, resources_path, calendar_path=None):
         if r["type"] in BUFFER_LINK and r["duration"] < 1:
             errors.append(f"{r['id']}: zero-length buffer (duration {r['duration']}) "
                           f"protects nothing — omit it and flag the chain instead")
+
+    # 11. every feeding buffer merges into exactly one protected successor
+    fb_ids = {r["id"] for r in sched if r["type"] == "feeding_buffer"}
+    merged = defaultdict(list)
+    for tid, r in rows.items():
+        for pid, ltype, lag in parse_links(field(r, "predecessor_ids", "predecessors")):
+            if pid in fb_ids and ltype == "FB":
+                merged[pid].append(tid)
+    for fb in sorted(fb_ids):
+        succs = merged.get(fb, [])
+        if len(succs) != 1:
+            errors.append(f"{fb}: feeding buffer must merge into exactly one successor "
+                          f"via a :FB link (found {len(succs)}) — a buffer without a "
+                          f"successor dangles outside the network")
+            continue
+        s = rows[succs[0]]
+        if not (s["type"] == "project_buffer"
+                or (s["type"] == "task" and s["chain"] == "critical")):
+            errors.append(f"{fb}: merge successor {succs[0]} must be a critical-chain "
+                          f"task or the project buffer")
 
     # 6. feeding buffers
     cc_starts = {r["start"] for r in sched if r["type"] == "task" and r["chain"] == "critical"}

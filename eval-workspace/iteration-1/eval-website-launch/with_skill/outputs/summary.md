@@ -4,7 +4,7 @@
 - **Critical chain length**: 23 working days (work finishes day 28)
 - **Project buffer**: 12 days → **promised completion: day 40**
 
-| Feeding buffer | Protects | Size (days) | Anchored to |
+| Feeding buffer | Protects | Size (days) | Merges into |
 |---|---|---|---|
 | FB1 | [W3 Design mockups](https://example.com/tickets/W3) | 2 | start of [W4 Build frontend](https://example.com/tickets/W4) |
 | FB2 | [W1 Content outline](https://example.com/tickets/W1) → [W2 Draft copy](https://example.com/tickets/W2) → [W7 Edit copy](https://example.com/tickets/W7) | 6 | start of [W8 Load content](https://example.com/tickets/W8) |

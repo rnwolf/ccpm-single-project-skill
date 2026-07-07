@@ -4,7 +4,7 @@
 - **Critical chain length**: 24 working days (work finishes day 24)
 - **Project buffer**: 12 days → **promised completion: day 36**
 
-| Feeding buffer | Protects | Size (days) | Anchored to |
+| Feeding buffer | Protects | Size (days) | Merges into |
 |---|---|---|---|
 | FB1 | P2 Write protocol → P6 Run trial B → P8 Report B | 1 | start of project buffer |
 

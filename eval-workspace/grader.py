@@ -126,6 +126,16 @@ def grade(eval_dir, config):
                  evidence=f"PB={pbs[0]['duration'] if pbs else '-'}, "
                           f"CC={sum(r['duration'] for r in rows if r['type']=='task' and r['chain']=='critical')}"),
         ]
+        preds_all = [field(r, "predecessor_ids", "predecessors") for r in rows]
+        results.append(dict(
+            text="CCPM: feeding buffers merge into the critical chain (successor :FB links)",
+            passed=bool(fbs) and all(
+                any(f"{fb['id']}:FB" in p for p in preds_all) for fb in fbs),
+            evidence="; ".join(
+                f"{fb['id']}->" + ",".join(
+                    r["id"] for r in rows
+                    if f"{fb['id']}:FB" in field(r, "predecessor_ids", "predecessors"))
+                for fb in fbs) or "no feeding buffers"))
         if overrides:
             outage = outage_violation_days(rows, caps, overrides) if rows else -1
             results.append(dict(
