@@ -1,4 +1,4 @@
-id,name,duration_safe,predecessor_ids,resource_ids,url
+id,name,realistic_duration,predecessor_ids,resource_ids,url
 W1,Content outline,6,,writer,https://example.com/tickets/W1
 W2,Draft copy,10,W1,writer,https://example.com/tickets/W2
 W3,Design mockups,8,W1,designer,https://example.com/tickets/W3

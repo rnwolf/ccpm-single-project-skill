@@ -47,10 +47,12 @@ Mention of CCPM, critical chain, Goldratt, project/feeding buffers, or resource-
 
 ### Input files
 
-**tasks.csv** — `id, name, duration_safe, duration_aggressive (optional), predecessor_ids, resource_ids, url (optional)`
+**tasks.csv** — `id, name, realistic_duration, optimal_duration (optional), predecessor_ids, resource_ids, url (optional)`
+
+`realistic_duration` is the estimate with safety baked in; `optimal_duration` is the padding-free estimate. (The classic CCPM literature calls these "safe" and "aggressive"; the legacy column names `duration_safe`/`duration_aggressive` are still accepted.)
 
 ```csv
-id,name,duration_safe,predecessor_ids,resource_ids,url
+id,name,realistic_duration,predecessor_ids,resource_ids,url
 A,Spec,10,,blue,https://example.com/wiki/spec
 B,Build,20,A,green,https://example.com/tickets/build
 F,Commission,10,D;E,red,
@@ -58,7 +60,7 @@ F,Commission,10,D;E,red,
 
 - `predecessor_ids`: semicolon-separated links. A bare id is Finish-to-Start; typed links with lag are supported: `A:SS+2`, `A:FF`, `A:SF`. The network must be acyclic; multiple entry or exit tasks are fine (the scheduler anchors them to synthetic Start/Finish milestones).
 - Every task needs a **positive duration** and **at least one resource** — a task without a resource cannot contend for capacity, so it cannot participate in critical chain identification.
-- If `duration_aggressive` is missing, the skill applies the classic 50% cut to `duration_safe`. If your estimates are *already* aggressive, say so in the prompt — it changes buffer sizes by 2x.
+- If `optimal_duration` is missing, the skill applies the classic 50% cut to `realistic_duration`. If your estimates are *already* optimal (padding-free), say so in the prompt — it changes buffer sizes by 2x.
 - `url`: optional link to a ticket/wiki page; it is carried into the outputs.
 
 **resources.csv** — `id, name, capacity, url (optional)`; capacity defaults to 1.
@@ -102,7 +104,7 @@ uv run scripts/plot_gantt.py schedule.csv gantt.png --resources resources.csv \
 
 The first `plot_gantt.py` run downloads matplotlib into uv's cache; subsequent runs are instant.
 
-`build_schedule.py` is deterministic — the same input always yields byte-identical output — so it doubles as a standalone command-line CCPM scheduler, independent of Claude: validate inputs, build, validate the schedule, plot. Claude's role in the skill is normalizing messy input into the CSV contract, choosing assumptions (safe vs aggressive estimates), and explaining the result.
+`build_schedule.py` is deterministic — the same input always yields byte-identical output — so it doubles as a standalone command-line CCPM scheduler, independent of Claude: validate inputs, build, validate the schedule, plot. Claude's role in the skill is normalizing messy input into the CSV contract, choosing assumptions (realistic vs optimal estimates), and explaining the result.
 
 The validator is also what the skill runs on its own output before showing you anything — a schedule that violates precedence, overloads a resource, or misplaces a buffer is rejected.
 

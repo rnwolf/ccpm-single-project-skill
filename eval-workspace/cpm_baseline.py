@@ -47,7 +47,8 @@ def main(tasks_path, out_path):
 
     dur, preds = {}, {}
     for t in tasks:
-        d = t.get("duration_safe") or t.get("duration_aggressive") or t.get("duration")
+        d = (t.get("realistic_duration") or t.get("optimal_duration")
+             or t.get("duration_safe") or t.get("duration_aggressive") or t.get("duration"))
         dur[t["id"]] = int(d)
         preds[t["id"]] = parse_links(field(t, "predecessor_ids", "predecessors"))
     succs = defaultdict(list)

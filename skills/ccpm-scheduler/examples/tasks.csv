@@ -1,4 +1,4 @@
-id,name,duration_safe,predecessor_ids,resource_ids,url
+id,name,realistic_duration,predecessor_ids,resource_ids,url
 A,Spec,10,,blue,https://example.com/wiki/spec
 B,Build,20,A,green,https://example.com/tickets/build
 C,Design,10,A,blue,https://example.com/wiki/design

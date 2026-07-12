@@ -89,7 +89,8 @@ def main(tasks_path, resources_path, calendar_path=None):
         ids.add(tid)
     for t in tasks:
         tid = t["id"]
-        d_raw = t.get("duration_aggressive") or t.get("duration_safe") or t.get("duration")
+        d_raw = (t.get("optimal_duration") or t.get("realistic_duration")
+                 or t.get("duration_aggressive") or t.get("duration_safe") or t.get("duration"))
         try:
             if d_raw is None or int(d_raw) < 1:
                 errors.append(f"task {tid}: duration must be a positive number of days (got {d_raw!r})")

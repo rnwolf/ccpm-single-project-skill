@@ -31,8 +31,8 @@ The CPM passes, leveling shifts, and chain tracing all use these inequalities in
 
 ## Step 0 — Normalize
 
-- For each task, `duration = duration_aggressive` if given, else `ceil(duration_safe / 2)`.
-- `safety_removed = duration_safe - duration` (used for nothing in the 50% buffer rule, but compute it anyway — the SSQ variant needs it).
+- For each task, `duration = optimal_duration` if given, else `ceil(realistic_duration / 2)`. (Accept the legacy column names `duration_aggressive`/`duration_safe` as aliases.)
+- `safety_removed = realistic_duration - duration` (used for nothing in the 50% buffer rule, but compute it anyway — the SSQ variant needs it).
 - If several tasks have no successors, add a virtual milestone `END` (duration 0, no resources) whose predecessors are all sink tasks. Likewise, if several tasks have no predecessors, add a virtual `START` milestone (duration 0, no resources) that all entry tasks succeed — the network always flows from one source to one sink. Both virtual nodes are removed from outputs.
 
 ## Step 1 — Validate
@@ -41,7 +41,7 @@ Run `uv run scripts/validate_inputs.py tasks.csv resources.csv [calendar.csv]` b
 
 ## Step 2 — ALAP baseline (backward pass)
 
-1. Forward pass with aggressive durations → early start/finish; project length `T` = max early finish. Apply each link's inequality (see Dependency link types) when propagating.
+1. Forward pass with optimal durations → early start/finish; project length `T` = max early finish. Apply each link's inequality (see Dependency link types) when propagating.
 2. Backward pass from `T` → late start/finish, again per link type.
 3. Set every task's scheduled `start = late_start`.
 
@@ -52,7 +52,7 @@ With a calendar: both passes ignore *contention* (that is Step 3's job) but resp
 Resolve conflicts by moving tasks **earlier only**. Iterate to a fixed point:
 
 1. Find the conflict to resolve: among all (resource, overlapping task pair) conflicts, pick the one whose overlap region has the **latest end**; tie-break by resource id ascending, then task ids ascending. (Resolving from the project end backward mirrors the ALAP logic and prevents churn.)
-2. Decide which task moves: keep in place the task with the **longer total path through it** (longest precedence path from any start task to END that passes through the task, in aggressive durations) — the more critical task stays put; the other shifts earlier so its `finish = stay_task.start`. Tie-break: keep the task with the later current finish; if still tied, keep the lexicographically smaller id.
+2. Decide which task moves: keep in place the task with the **longer total path through it** (longest precedence path from any start task to END that passes through the task, in optimal durations) — the more critical task stays put; the other shifts earlier so its `finish = stay_task.start`. Tie-break: keep the task with the later current finish; if still tied, keep the lexicographically smaller id.
 3. A shifted task drags its predecessors: if the shift violates a precedence constraint (`pred.finish > task.start`), shift those predecessors earlier too, recursively, by the minimum amount needed.
 4. Recheck everything (a shift can create new conflicts) and repeat until no conflicts remain.
 
@@ -76,14 +76,14 @@ For every non-critical task, find its chain: follow successors until reaching a 
 
 ## Step 6 — Buffers (50% rule, default)
 
-- **Project buffer** `PB = ceil(0.5 × sum of aggressive durations of critical-chain tasks)`. Insert at `start = finish of last CC task`, `duration = PB`. Promised completion = end of PB.
-- **Feeding buffer** per feeding chain: `FB = ceil(0.5 × sum of aggressive durations of that chain's tasks)`. The feeding chain must finish `FB` days before its join point's start: shift the entire feeding chain earlier by the overlap amount, then place the buffer in the gap `[chain_finish, join.start)`.
+- **Project buffer** `PB = ceil(0.5 × sum of optimal durations of critical-chain tasks)`. Insert at `start = finish of last CC task`, `duration = PB`. Promised completion = end of PB.
+- **Feeding buffer** per feeding chain: `FB = ceil(0.5 × sum of optimal durations of that chain's tasks)`. The feeding chain must finish `FB` days before its join point's start: shift the entire feeding chain earlier by the overlap amount, then place the buffer in the gap `[chain_finish, join.start)`.
 - A shifting feeding chain **drags its non-critical external predecessors** along (same semantics as a leveling shift) — an ALAP-placed feeder of a feeder must not pin the chain against its join point. Critical-chain tasks never move; they cap the shift instead.
 - **Buffers are at least 1 day.** If a chain cannot shift at all (blocked by a critical-chain predecessor, the calendar, or day 0) and the gap to its join point is zero, do NOT emit a zero-length buffer — omit it and flag the chain in the summary as effectively critical, to be watched as closely as the critical chain. The validator rejects zero-length buffer rows.
 - Feeding-chain shifts can create new resource conflicts → re-run Step 3 restricted to moved tasks (they may only move earlier).
 - After all insertions, if min start < 0, shift **every** task and buffer right uniformly so min start = 0.
 
-SSQ variant (use only if the user asks): buffer = `ceil(sqrt(sum(safety_removed_i²)))` over the chain. Requires real safe AND aggressive estimates per task; mention that it yields smaller buffers on long chains.
+SSQ variant (use only if the user asks): buffer = `ceil(sqrt(sum(safety_removed_i²)))` over the chain. Requires real realistic AND optimal estimates per task; mention that it yields smaller buffers on long chains.
 
 Buffers never consume resources and never participate in leveling as demand. Calendars therefore never constrain buffer placement — a buffer is calendar time, and may freely span days on which resources are unavailable.
 

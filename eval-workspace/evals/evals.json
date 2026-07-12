@@ -1,11 +1,11 @@
 {
   "skill_name": "ccpm-scheduler",
-  "philosophy": "Compare CCPM-with-skill output against a deterministic traditional-CPM baseline (cpm_baseline.py: ASAP, safe durations, no resource leveling, no buffers, calendars ignored). Success = CCPM schedule is resource-feasible (0 overloaded resource-days, calendar-aware where calendar.csv exists) with :PB/:FB-attached buffers, while the CPM Gantt's utilization panel typically shows red over-capacity blocks and work scheduled across grey outage windows. Task inputs use predecessor_ids/resource_ids columns; website-launch also carries url columns that must pass through to schedule.csv. make_review.py renders inputs plus both schedules into a single self-contained <iteration>/review.html for side-by-side comparison.",
+  "philosophy": "Compare CCPM-with-skill output against a deterministic traditional-CPM baseline (cpm_baseline.py: ASAP, realistic durations, no resource leveling, no buffers, calendars ignored). Success = CCPM schedule is resource-feasible (0 overloaded resource-days, calendar-aware where calendar.csv exists) with :PB/:FB-attached buffers, while the CPM Gantt's utilization panel typically shows red over-capacity blocks and work scheduled across grey outage windows. Task inputs use predecessor_ids/resource_ids columns; website-launch also carries url columns that must pass through to schedule.csv. make_review.py renders inputs plus both schedules into a single self-contained <iteration>/review.html for side-by-side comparison.",
   "evals": [
     {
       "id": 0,
       "eval_name": "website-launch",
-      "prompt": "Build a CCPM schedule for the website relaunch (tasks.csv safe estimates, resources.csv, calendar.csv availability: dev out days 10-13, editor out days 0-5).",
+      "prompt": "Build a CCPM schedule for the website relaunch (tasks.csv realistic estimates, resources.csv, calendar.csv availability: dev out days 10-13, editor out days 0-5).",
       "files": [
         "inputs/website-launch/tasks.csv",
         "inputs/website-launch/resources.csv",
@@ -16,7 +16,7 @@
     {
       "id": 1,
       "eval_name": "lab-trials",
-      "prompt": "CCPM schedule; durations already aggressive (no cut); two sink reports.",
+      "prompt": "CCPM schedule; durations already optimal (no cut); two sink reports.",
       "files": [
         "inputs/lab-trials/tasks.csv",
         "inputs/lab-trials/resources.csv"

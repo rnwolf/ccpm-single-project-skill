@@ -16,7 +16,7 @@ directory). Run validate_inputs.py on the input files first — this builder
 assumes a logically valid network (acyclic, known ids, positive durations,
 every task resourced) and reports input problems only crudely.
 
-Steps: normalize (aggressive durations = ceil(safe/2) unless given) ->
+Steps: normalize (optimal durations = ceil(realistic/2) unless given) ->
 ALAP baseline (calendar-aware) -> resource leveling (earlier-only; if
 infeasible under deadline T, retry with T+1) -> critical chain (resource
 links + calendar-gap continuation) -> feeding chains -> buffers (50% rule;
@@ -70,9 +70,9 @@ class Net:
     def __init__(self, tasks_path, resources_path, calendar_path=None):
         self.T = {}     # tid -> dict(name, dur, links, res, url, predstr)
         for t in read_csv(tasks_path):
-            d_ag = t.get("duration_aggressive")
-            d_sf = t.get("duration_safe")
-            dur = int(d_ag) if d_ag else math.ceil(int(d_sf) / 2)
+            d_opt = field(t, "optimal_duration", "duration_aggressive")
+            d_real = field(t, "realistic_duration", "duration_safe")
+            dur = int(d_opt) if d_opt else math.ceil(int(d_real) / 2)
             predstr = field(t, "predecessor_ids", "predecessors")
             self.T[t["id"]] = dict(
                 name=t.get("name", t["id"]), dur=dur,
@@ -97,7 +97,7 @@ class Net:
         for res in {r for t in self.T.values() for r in t["res"]}:
             if res not in self.caps:
                 die(f"unknown resource {res}")
-        # longest precedence path through each task (aggressive durations)
+        # longest precedence path through each task (optimal durations)
         self.path_through = {}
         down, up = {}, {}
         def longest_down(tid):
@@ -535,7 +535,7 @@ def build(tasks_path, resources_path, calendar_path, out_dir, title):
                  "placed contiguously around outage windows (grey blocks in the "
                  "Gantt utilization panel), never split across them.")
         L.append("")
-    L.append("Durations are aggressive estimates; overruns are expected roughly "
+    L.append("Durations are optimal (padding-free) estimates; overruns are expected roughly "
              "half the time and consume buffer — the promise date only moves if "
              "a buffer runs dry. Work the critical chain relay-runner style: "
              "hand off immediately, no multitasking.")

@@ -2,8 +2,8 @@
 
 Input (`examples/tasks.csv`, `examples/resources.csv`):
 
-| id | name      | duration_safe | predecessor_ids | resource_ids |
-|----|-----------|---------------|-----------------|--------------|
+| id | name      | realistic_duration | predecessor_ids | resource_ids |
+|----|-----------|--------------------|-----------------|--------------|
 | A  | Spec      | 10            |                 | blue         |
 | B  | Build     | 20            | A               | green        |
 | C  | Design    | 10            | A               | blue         |
@@ -15,7 +15,7 @@ Resources: blue, green, red — capacity 1 each.
 
 (The example CSVs also carry an optional `url` column on tasks and resources — a link to each item's detail page. It plays no part in the computation and is omitted from the tables below; it simply passes through to `schedule.csv` and becomes markdown links in the summary. There is also an `examples/calendar.csv` with availability overrides — green in training days 2–4, red on another project days 0–10. Both outages fall where those resources have no work in this schedule, so every step below is unchanged; they exist to show the format and to render as grey "unavailable" blocks on the chart.)
 
-## Step 0 — Aggressive durations (50% cut)
+## Step 0 — Optimal durations (50% cut)
 
 A=5, B=10, C=5, D=10, E=5, F=5.
 

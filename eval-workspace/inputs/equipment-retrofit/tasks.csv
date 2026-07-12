@@ -1,4 +1,4 @@
-id,name,duration_safe,predecessor_ids,resource_ids
+id,name,realistic_duration,predecessor_ids,resource_ids
 R1,Strip down machine,8,,mech
 R2,Order parts,4,,plan
 R3,Refurbish spindle,12,R1,mech
