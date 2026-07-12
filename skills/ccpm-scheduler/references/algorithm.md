@@ -1,6 +1,6 @@
 # CCPM Scheduling Algorithm — deterministic specification
 
-This is the normative spec. Every rule here exists so that the same input always produces the same schedule — that property is what lets users trust reruns. `scripts/build_schedule.py` is the reference implementation (a stdlib-only CLI); when implementing independently, follow the steps and tie-breaks literally and expect byte-identical output.
+This is the normative spec. Every rule here exists so that the same input always produces the same schedule — that property is what lets users trust reruns. The [ccpm-scheduler](https://github.com/rnwolf/ccpm-scheduler) package (`ccpm-scheduler build`, module `ccpm_scheduler.build`) is the reference implementation; when implementing independently, follow the steps and tie-breaks literally and expect byte-identical output.
 
 All times are integer working-day offsets. A task occupies the half-open interval `[start, finish)` with `finish = start + duration`. Two tasks overlap iff `start_a < finish_b and start_b < finish_a`.
 
@@ -37,7 +37,7 @@ The CPM passes, leveling shifts, and chain tracing all use these inequalities in
 
 ## Step 1 — Validate
 
-Run `uv run scripts/validate_inputs.py tasks.csv resources.csv [calendar.csv]` before scheduling. Fail with a clear message (do not schedule) on: dependency cycles, duplicate ids, predecessor ids that don't exist, resource ids not in the resource table, non-positive durations, and **tasks with no resources assigned** — a task without a resource cannot contend for capacity, so it cannot participate properly in critical chain identification or leveling. Warn (but proceed) on: resource capacity > 1 (supported, but unusual in CCPM), non-FS links.
+Run `ccpm-scheduler validate tasks.csv resources.csv [calendar.csv]` before scheduling. Fail with a clear message (do not schedule) on: dependency cycles, duplicate ids, predecessor ids that don't exist, resource ids not in the resource table, non-positive durations, and **tasks with no resources assigned** — a task without a resource cannot contend for capacity, so it cannot participate properly in critical chain identification or leveling. Warn (but proceed) on: resource capacity > 1 (supported, but unusual in CCPM), non-FS links.
 
 ## Step 2 — ALAP baseline (backward pass)
 
@@ -99,4 +99,4 @@ Buffers never consume resources and never participate in leveling as demand. Cal
 - **Chains that run to the project end merge into a `FINISH` milestone**, not into the project buffer. When any end-running feeding buffer exists, emit a zero-duration critical-chain task `FINISH` at the last critical task's finish, with the terminal critical task and those buffers as predecessors; the project buffer then attaches as `FINISH:PB`. The project buffer always has exactly ONE predecessor (`<terminal CC task or FINISH>:PB`) and no successor — its end IS the commitment date.
 - Keep link-type notation intact in `predecessor_ids` — the Gantt script reads it to draw FS/SS/FF/SF arrows and dashed PB/FB buffer attachments with a commitment-date marker.
 
-Then run `uv run scripts/validate_schedule.py schedule.csv tasks.csv resources.csv [calendar.csv]` and resolve any reported violation before presenting.
+Then run `ccpm-scheduler check schedule.csv tasks.csv resources.csv [calendar.csv]` and resolve any reported violation before presenting.

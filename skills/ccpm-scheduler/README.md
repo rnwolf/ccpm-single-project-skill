@@ -2,7 +2,7 @@
 
 Give Claude a task list with dependencies, durations, and resource assignments, and this skill makes it produce a proper Critical Chain (CCPM/Goldratt) schedule: resource-leveled, scheduled as late as possible, and protected by a project buffer and feeding buffers — plus a Gantt chart you can read the whole plan from.
 
-This README is for humans. The file Claude actually reads is [SKILL.md](SKILL.md); the deterministic scheduling rules live in [references/algorithm.md](references/algorithm.md).
+This README is for humans. The file Claude actually reads is [SKILL.md](SKILL.md); the deterministic scheduling rules live in [references/algorithm.md](references/algorithm.md); the computation itself lives in the [ccpm-scheduler](https://github.com/rnwolf/ccpm-scheduler) Python package, whose CLI the skill drives.
 
 ## What's in this folder
 
@@ -11,20 +11,19 @@ This README is for humans. The file Claude actually reads is [SKILL.md](SKILL.md
 | `SKILL.md` | The skill definition Claude loads — workflow, input/output contract |
 | `references/algorithm.md` | Normative spec: ALAP pass, leveling tie-breaks, chain tracing, buffer sizing, calendars |
 | `references/worked-example.md` | A 6-task network walked through every step with exact numbers |
-| `scripts/validate_inputs.py` | Checks the input files before scheduling (cycles, ids, durations, resources, calendar) — exit 0 = valid |
-| `scripts/build_schedule.py` | Deterministic CCPM schedule builder (the reference implementation of the algorithm) — writes `schedule.csv` + `summary.md` |
-| `scripts/plot_gantt.py` | Renders `schedule.csv` as a buffer-aware Gantt PNG with a resource-utilization panel |
-| `scripts/validate_schedule.py` | Checks a produced schedule (precedence, capacity, buffer placement) — exit 0 = valid |
-| `scripts/*.py.lock` | uv lock files pinning each script's exact dependency versions |
 | `examples/` | Sample `tasks.csv`, `resources.csv`, `calendar.csv` matching the worked example |
+
+The scheduler scripts that used to be bundled here became the
+[ccpm-scheduler](https://github.com/rnwolf/ccpm-scheduler) package — a proper
+library + CLI with a typed model, coded validation issues, and a JSON
+exchange format, so the same engine serves this skill, other tools (e.g.
+[our-planner](https://github.com/rnwolf/our-planner)), and direct human use.
 
 ## Requirements
 
-- [uv](https://docs.astral.sh/uv/) — the scripts declare their dependencies inline ([PEP 723](https://peps.python.org/pep-0723/)), so `uv run` fetches exactly what each script needs (matplotlib for the chart; the validator is stdlib-only) into a cached, isolated environment. No virtualenv or `pip install` step. Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` if you don't have it.
+- [uv](https://docs.astral.sh/uv/) — the skill runs the CLI as `uvx --from git+https://github.com/rnwolf/ccpm-scheduler ccpm-scheduler ...`, which fetches and caches the package automatically. Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` if you don't have it.
 
-Each script has a `<script>.py.lock` file beside it, so every environment resolves the same dependency versions. After changing a script's inline `dependencies`, refresh its lock with `uv lock --script scripts/plot_gantt.py`.
-
-(No uv? `python3 scripts/...` still works if you install matplotlib yourself — but you lose the pinned, reproducible environment.)
+(No uv? `pip install git+https://github.com/rnwolf/ccpm-scheduler` puts the `ccpm-scheduler` command on your PATH.)
 
 ## Installing the skill
 
@@ -89,24 +88,24 @@ Three deliverables:
 - **`summary.md`** — critical chain sequence, project duration, buffer sizes, and the promised completion date (= end of the project buffer). Task/resource urls become clickable links here.
 - **`gantt.png`** — the chart: critical chain in cross-hatched dark red, feeding chains colored, buffers hatched gold/khaki with a commitment-date diamond, dependency arrows (non-FS links labeled), and a resource-utilization panel where red means over capacity and grey hatching means unavailable.
 
-## Running the scripts yourself
+## Running the scheduler yourself
 
-With uv installed there is nothing to set up — dependencies resolve automatically from the inline metadata and lock files:
+With uv installed there is nothing to set up (the first run fetches the package into uv's cache; subsequent runs are instant):
 
 ```bash
-uv run scripts/validate_inputs.py tasks.csv resources.csv [calendar.csv]
-uv run scripts/build_schedule.py tasks.csv resources.csv [--calendar calendar.csv] \
+alias ccpm-scheduler="uvx --from git+https://github.com/rnwolf/ccpm-scheduler ccpm-scheduler"
+
+ccpm-scheduler validate tasks.csv resources.csv [calendar.csv]
+ccpm-scheduler build tasks.csv resources.csv [--calendar calendar.csv] \
     [--out-dir DIR] [--title "My project"]
-uv run scripts/validate_schedule.py schedule.csv tasks.csv resources.csv [calendar.csv]
-uv run scripts/plot_gantt.py schedule.csv gantt.png --resources resources.csv \
+ccpm-scheduler check schedule.csv tasks.csv resources.csv [calendar.csv]
+ccpm-scheduler plot schedule.csv gantt.png --resources resources.csv \
     [--calendar calendar.csv] [--title "My project"] [--critical-label "Critical path"]
 ```
 
-The first `plot_gantt.py` run downloads matplotlib into uv's cache; subsequent runs are instant.
+The CLI is deterministic — the same input always yields byte-identical output — and works standalone, independent of Claude: exit codes are a contract (0 = ok, 1 = problems found, 2 = usage error), every subcommand takes `--json` for machine-readable output, and `ccpm-scheduler schema network` prints the JSON input format. Claude's role in the skill is normalizing messy input into the input contract, choosing assumptions (realistic vs optimal estimates), and explaining the result.
 
-`build_schedule.py` is deterministic — the same input always yields byte-identical output — so it doubles as a standalone command-line CCPM scheduler, independent of Claude: validate inputs, build, validate the schedule, plot. Claude's role in the skill is normalizing messy input into the CSV contract, choosing assumptions (realistic vs optimal estimates), and explaining the result.
-
-The validator is also what the skill runs on its own output before showing you anything — a schedule that violates precedence, overloads a resource, or misplaces a buffer is rejected.
+`check` is also what the skill runs on its own output before showing you anything — a schedule that violates precedence, overloads a resource, or misplaces a buffer is rejected.
 
 ## Scope
 
