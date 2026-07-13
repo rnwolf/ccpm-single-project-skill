@@ -2,7 +2,7 @@
 
 A [Claude Code](https://claude.com/claude-code) plugin providing the **ccpm-scheduler** skill: give Claude a task list with dependencies, durations, resource assignments, and (optionally) resource availability, and it produces a proper Critical Chain (CCPM / Goldratt) schedule — resource-leveled, as-late-as-possible, protected by a project buffer and feeding buffers — plus a Gantt chart and a validated `schedule.csv`.
 
-The skill itself (what Claude reads, plus its scripts and references) lives in [`skills/ccpm-scheduler/`](skills/ccpm-scheduler/) — see its [README](skills/ccpm-scheduler/README.md) for input formats, outputs, and how to run the bundled scripts manually.
+The skill itself (what Claude reads, plus its references and examples) lives in [`skills/ccpm-scheduler/`](skills/ccpm-scheduler/) — see its [README](skills/ccpm-scheduler/README.md) for input formats, outputs, and how to run the scheduler yourself. The scheduling engine is the [ccpm-scheduler](https://pypi.org/project/ccpm-scheduler/) Python package ([source](https://github.com/rnwolf/ccpm-scheduler)) — a deterministic library + CLI that the skill drives via `uvx ccpm-scheduler`, and that other tools (like [our-planner](https://github.com/rnwolf/our-planner)) embed directly.
 
 ## Installation
 
@@ -32,7 +32,7 @@ Copy `skills/ccpm-scheduler/` into your skills directory:
 
 ## Requirements
 
-- [uv](https://docs.astral.sh/uv/) — the bundled scripts declare dependencies inline (PEP 723) with committed lock files, so `uv run` provisions everything (matplotlib for charts) reproducibly.
+- [uv](https://docs.astral.sh/uv/) — the skill runs the scheduling engine as `uvx ccpm-scheduler ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. (No uv? `pip install ccpm-scheduler` works too.)
 
 ## Using it
 

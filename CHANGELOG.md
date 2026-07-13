@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.0 — 2026-07-13
+
+The scheduling engine moved out of the skill and onto PyPI.
+
+- The skill now drives the [ccpm-scheduler](https://pypi.org/project/ccpm-scheduler/)
+  CLI (`uvx ccpm-scheduler validate|build|check|plot|schema`) instead of
+  bundled scripts; `scripts/` and the uv lock files are gone. The engine is
+  the same code, extracted behavior-preserving into its own repo
+  (https://github.com/rnwolf/ccpm-scheduler) with byte-identical golden
+  tests, a typed library API, machine-readable validation issue codes, a
+  JSON exchange format, and an agent-friendly CLI contract (exit codes
+  0/1/2, `--json`, `schema` subcommand).
+- Duration columns renamed to `realistic_duration` (safety included) /
+  `optimal_duration` (padding-free), matching our-planner's terminology;
+  the legacy `duration_safe`/`duration_aggressive` names are still accepted.
+- Deterministic builder shipped and buffer topology hardened (pre-extraction):
+  every merge edge into the critical chain gets its own feeding buffer, the
+  direct feeder edge is rerouted through the buffer, end-running chains merge
+  into a zero-duration FINISH milestone, and feeding buffers must merge into
+  the critical chain (no dangling successors).
+
 ## 0.1.0 — 2026-07-02
 
 First packaged release, extracted from the ccpm-proof-of-concept repo.
