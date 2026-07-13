@@ -21,7 +21,7 @@ To try a local checkout during development:
 /plugin marketplace add /path/to/ccpm-single-project-skill
 ```
 
-Updates: bump the `version` in `.claude-plugin/plugin.json`, tag a release, and users pick it up with `/plugin update ccpm-scheduler`.
+Updates: users pick up new versions with `/plugin update ccpm-scheduler` — see [Releasing](#releasing) for the maintainer side.
 
 ### Manual (any agent that reads skill folders)
 
@@ -33,6 +33,43 @@ Copy `skills/ccpm-scheduler/` into your skills directory:
 ## Requirements
 
 - [uv](https://docs.astral.sh/uv/) — the skill runs the scheduling engine as `uvx ccpm-scheduler ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. (No uv? `pip install ccpm-scheduler` works too.)
+
+## Releasing
+
+Two things version independently — the **skill** (this repo, the instructions
+Claude follows) and the **engine** ([ccpm-scheduler](https://github.com/rnwolf/ccpm-scheduler)
+on PyPI, the code that computes schedules). They update through different
+channels:
+
+**Releasing the skill** (after changing anything under `skills/` or the
+plugin manifest):
+
+1. Make the changes on `master` and verify them — at minimum run the
+   documented pipeline on `skills/ccpm-scheduler/examples/` end to end
+   (`uvx ccpm-scheduler validate` → `build` → `check` → `plot`).
+2. Bump `version` in `.claude-plugin/plugin.json` (semver: patch = wording
+   fixes, minor = workflow/contract changes, major = breaking input-format
+   changes). This field is what `/plugin update` compares — without the bump,
+   downstream users never see the change.
+3. Add a `CHANGELOG.md` entry; note which engine version the release was
+   verified against.
+4. Push `master`, then tag and publish the human-facing record:
+   `git tag vX.Y.Z && git push origin vX.Y.Z`, and create a GitHub release
+   with the changelog notes (`gh release create vX.Y.Z ...`).
+
+Steps 2 + push are what actually deliver the update; the tag/release give
+each version a diffable, documented identity. Manual folder-copy installs
+have no update channel — those users re-copy.
+
+**Releasing the engine** happens in the
+[ccpm-scheduler repo](https://github.com/rnwolf/ccpm-scheduler) (its GitHub
+release workflow publishes to PyPI). Because SKILL.md invokes
+`uvx ccpm-scheduler` **unpinned**, every skill user gets the newest engine at
+run time — engine fixes need no skill release at all. The flip side: engine
+behavior can change under an unchanged skill version. Once the engine
+stabilizes at 1.0, consider bounding the invocation in SKILL.md
+(`uvx 'ccpm-scheduler>=1,<2'`) so only compatible engine releases flow
+through automatically.
 
 ## Using it
 
