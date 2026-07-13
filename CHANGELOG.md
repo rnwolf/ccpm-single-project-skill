@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 — 2026-07-13
+
+- New fourth deliverable: `project-network.html`, an interactive dependency
+  graph of the schedule (`ccpm-scheduler graph`) — a standalone HTML file
+  (vis-network via CDN, data embedded, no server or build step) for
+  exploring the network structure the Gantt can't show: zoom, pan, drag
+  nodes, toggle hierarchical/free layout, click a task to inspect its
+  schedule, resources, and links. Colors match the Gantt.
+- Verified against engine ccpm-scheduler 0.5.0 (build output byte-identical
+  to the reference goldens).
+
+
 ## 0.2.0 — 2026-07-13
 
 The scheduling engine moved out of the skill and onto PyPI.

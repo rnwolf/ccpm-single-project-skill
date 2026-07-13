@@ -82,11 +82,12 @@ Tasks run **contiguously** — they never pause across an outage, so a task is s
 
 ### Outputs
 
-Three deliverables:
+Four deliverables:
 
 - **`schedule.csv`** — every task and buffer with `start`/`finish` day offsets, chain membership (`critical`, `feeding-n`), and link notation. Buffers attach via CCPM-specific `:PB`/`:FB` link types (they behave differently from work during execution — slippage consumes them rather than pushing them), and each feeding buffer also *merges*: the critical-chain task it protects lists it back as `FBn:FB` *instead of* the direct feeder link (rerouted through the buffer, so nothing bypasses it). Feeding chains that run to the project end merge into a zero-duration `FINISH` milestone; the project buffer's only predecessor is the terminal critical-chain task (or that milestone).
 - **`summary.md`** — critical chain sequence, project duration, buffer sizes, and the promised completion date (= end of the project buffer). Task/resource urls become clickable links here.
 - **`gantt.png`** — the chart: critical chain in cross-hatched dark red, feeding chains colored, buffers hatched gold/khaki with a commitment-date diamond, dependency arrows (non-FS links labeled), and a resource-utilization panel where red means over capacity and grey hatching means unavailable.
+- **`project-network.html`** — a standalone interactive dependency graph of the same schedule (vis-network via CDN, data embedded — no server needed): zoom, pan, drag nodes, toggle hierarchical/free layout, click a task to inspect its details. The Gantt shows *when*; this shows *why*.
 
 ## Running the scheduler yourself
 
@@ -101,6 +102,7 @@ ccpm-scheduler build tasks.csv resources.csv [--calendar calendar.csv] \
 ccpm-scheduler check schedule.csv tasks.csv resources.csv [calendar.csv]
 ccpm-scheduler plot schedule.csv gantt.png --resources resources.csv \
     [--calendar calendar.csv] [--title "My project"] [--critical-label "Critical path"]
+ccpm-scheduler graph schedule.csv project-network.html [--title "My project"]
 ```
 
 The CLI is deterministic — the same input always yields byte-identical output — and works standalone, independent of Claude: exit codes are a contract (0 = ok, 1 = problems found, 2 = usage error), every subcommand takes `--json` for machine-readable output, and `ccpm-scheduler schema network` prints the JSON input format. Claude's role in the skill is normalizing messy input into the input contract, choosing assumptions (realistic vs optimal estimates), and explaining the result.
