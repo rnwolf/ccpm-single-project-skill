@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 — 2026-07-13
+
+- `project-network.html` now shows each task's **realistic estimate** next
+  to its scheduled optimal duration — in the hover tooltip
+  ("5d optimal, 10d realistic") and in the inspector's new Estimates row,
+  including the % of safety pooled into buffers. The graph step passes
+  `--tasks tasks.csv`, so reviewing the optimal/realistic balance happens
+  right on the network view.
+- Verified against engine ccpm-scheduler 0.6.0.
+
+
 ## 0.3.0 — 2026-07-13
 
 - New fourth deliverable: `project-network.html`, an interactive dependency
