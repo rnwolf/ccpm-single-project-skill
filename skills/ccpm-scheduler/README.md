@@ -21,9 +21,9 @@ exchange format, so the same engine serves this skill, other tools (e.g.
 
 ## Requirements
 
-- [uv](https://docs.astral.sh/uv/) — the skill runs the CLI as `uvx --from git+https://github.com/rnwolf/ccpm-scheduler ccpm-scheduler ...`, which fetches and caches the package automatically. Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` if you don't have it.
+- [uv](https://docs.astral.sh/uv/) — the skill runs the CLI as `uvx ccpm-scheduler ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` if you don't have it.
 
-(No uv? `pip install git+https://github.com/rnwolf/ccpm-scheduler` puts the `ccpm-scheduler` command on your PATH.)
+(No uv? `pip install ccpm-scheduler` puts the `ccpm-scheduler` command on your PATH.)
 
 ## Installing the skill
 
@@ -93,7 +93,7 @@ Three deliverables:
 With uv installed there is nothing to set up (the first run fetches the package into uv's cache; subsequent runs are instant):
 
 ```bash
-alias ccpm-scheduler="uvx --from git+https://github.com/rnwolf/ccpm-scheduler ccpm-scheduler"
+alias ccpm-scheduler="uvx ccpm-scheduler"
 
 ccpm-scheduler validate tasks.csv resources.csv [calendar.csv]
 ccpm-scheduler build tasks.csv resources.csv [--calendar calendar.csv] \
