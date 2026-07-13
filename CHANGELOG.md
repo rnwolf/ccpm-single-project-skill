@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.0 — 2026-07-13
+
+- `schedule.csv` now includes `realistic_duration` per task (engine 0.7.0):
+  filter by chain to audit how much safety left the tasks versus what
+  landed in that chain's buffer — the reassurance conversation of CCPM
+  adoption. The graph step no longer needs `--tasks`; the schedule carries
+  the estimates.
+- `project-network.html` gains a resource filter (All / Unassigned / each
+  named resource) — everything but the selected resource's tasks fades, so
+  each team member can see their part in the context of the whole plan.
+- Gantt: task labels no longer clip at the left edge; dotted horizontal
+  guides per task row and per resource row make label-to-bar alignment easy
+  on long schedules.
+- README: installation via the skills CLI (`npx skills add ...`) documented
+  alongside the plugin and manual installs.
+- Verified against engine ccpm-scheduler 0.7.0 (build byte-identical to the
+  regenerated goldens).
+
+
 ## 0.4.0 — 2026-07-13
 
 - `project-network.html` now shows each task's **realistic estimate** next

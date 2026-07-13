@@ -23,6 +23,30 @@ To try a local checkout during development:
 
 Updates: users pick up new versions with `/plugin update ccpm-scheduler` — see [Releasing](#releasing) for the maintainer side.
 
+### Via the skills CLI (Claude Code and other agents)
+
+The [skills CLI](https://www.npmjs.com/package/skills) installs skills from
+any repo containing `SKILL.md` folders — no plugin/marketplace setup needed:
+
+```bash
+# Add to the current project
+npx skills add https://github.com/rnwolf/ccpm-single-project-skill
+
+# Add globally (user-level, not project-level)
+npx skills add https://github.com/rnwolf/ccpm-single-project-skill -g
+
+# Update to the latest version later
+npx skills update ccpm-scheduler -y
+
+# List installed skills
+npx skills list
+npx skills ls -g           # global skills
+```
+
+(Note: use this repo's URL — the
+[ccpm-scheduler](https://github.com/rnwolf/ccpm-scheduler) repo is the
+Python scheduling engine, not the skill.)
+
 ### Manual (any agent that reads skill folders)
 
 Copy `skills/ccpm-scheduler/` into your skills directory:
