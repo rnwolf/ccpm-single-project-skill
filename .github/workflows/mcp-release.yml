@@ -1,0 +1,39 @@
+name: Build and Attach MCP Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-attach:
+    runs-on: ubuntu-latest
+
+    # Ensure the action has permission to modify the release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24" # Current Active LTS
+
+      # (Optional) If your project requires installing dependencies first:
+      # - name: Install dependencies
+      #   run: npm install
+
+      - name: Build MCP Package
+        # The --yes flag ensures npx doesn't hang prompting to install the package
+        run: npx --yes @anthropic-ai/mcpb pack .
+
+      - name: Upload artifact to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # The pack command outputs a .mcpb file based on your manifest name.
+          # The wildcard grabs it automatically.
+          files: "*.mcpb"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
