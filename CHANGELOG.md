@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 - 2026-07-14
+
+- Add github worlflow to publish skill in zip file format that can be
+  downloaded and installed in Claude desktop.
+
 ## 0.5.0 — 2026-07-13
 
 - `schedule.csv` now includes `realistic_duration` per task (engine 0.7.0):
@@ -18,7 +23,6 @@
 - Verified against engine ccpm-scheduler 0.7.0 (build byte-identical to the
   regenerated goldens).
 
-
 ## 0.4.0 — 2026-07-13
 
 - `project-network.html` now shows each task's **realistic estimate** next
@@ -28,7 +32,6 @@
   `--tasks tasks.csv`, so reviewing the optimal/realistic balance happens
   right on the network view.
 - Verified against engine ccpm-scheduler 0.6.0.
-
 
 ## 0.3.0 — 2026-07-13
 
@@ -41,7 +44,6 @@
 - Verified against engine ccpm-scheduler 0.5.0 (build output byte-identical
   to the reference goldens).
 
-
 ## 0.2.0 — 2026-07-13
 
 The scheduling engine moved out of the skill and onto PyPI.
@@ -50,7 +52,7 @@ The scheduling engine moved out of the skill and onto PyPI.
   CLI (`uvx ccpm-scheduler validate|build|check|plot|schema`) instead of
   bundled scripts; `scripts/` and the uv lock files are gone. The engine is
   the same code, extracted behavior-preserving into its own repo
-  (https://github.com/rnwolf/ccpm-scheduler) with byte-identical golden
+  (<https://github.com/rnwolf/ccpm-scheduler>) with byte-identical golden
   tests, a typed library API, machine-readable validation issue codes, a
   JSON exchange format, and an agent-friendly CLI contract (exit codes
   0/1/2, `--json`, `schema` subcommand).
