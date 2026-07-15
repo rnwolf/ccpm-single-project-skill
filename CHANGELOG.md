@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 - 2026-07-15
+
+- Workflow was to publish a mcp service. Not correct for a skill. Deleted.
+- Added workflow to create a zip file of just the key files required for skill zip.
+
 ## 0.5.1 - 2026-07-14
 
 - Add github worlflow to publish skill in zip file format that can be
