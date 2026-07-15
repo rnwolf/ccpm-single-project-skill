@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3 - 2026-07-15
+
+- Skill zip file included to much information. Fix zip file contents.
+
 ## 0.5.1 - 2026-07-15
 
 - Workflow was to publish a mcp service. Not correct for a skill. Deleted.

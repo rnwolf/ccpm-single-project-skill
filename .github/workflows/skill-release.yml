@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+env:
+  SKILL_DIR: "skills/ccpm-scheduler"
+  SKILL_NAME: "ccpm-scheduler"
+
 jobs:
   build-zip:
     runs-on: ubuntu-latest
@@ -15,32 +19,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Get Repository Name
-        # Extracts just the repo name (e.g., 'my-ai-skill' from 'username/my-ai-skill')
-        id: get-name
-        run: echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-
       - name: Prepare Skill Folder
-        # Claude Desktop requires the zip to contain a root folder matching the skill name.
-        # This step creates that folder and copies everything over, ignoring .git and .github.
+        # The internal folder MUST remain unversioned for Claude to recognize it
         run: |
-          mkdir -p build/${{ env.REPO_NAME }}
-          rsync -av . build/${{ env.REPO_NAME }} \
-            --exclude 'build' \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude '.gitignore' \
-            --exclude 'eval-workspace' \
+          mkdir -p build/${{ env.SKILL_NAME }}
+          rsync -av ${{ env.SKILL_DIR }}/ build/${{ env.SKILL_NAME }} \
             --exclude '.claude'
 
-      - name: Create Zip Archive
-        # Changes into the build directory so the zip command creates the correct root structure
+      - name: Create Versioned Zip Archive
         working-directory: build
-        run: zip -r ../${{ env.REPO_NAME }}.zip ${{ env.REPO_NAME }}
+        # Appends the GitHub release tag to the zip filename (e.g., ccpm-scheduler-v1.0.0.zip)
+        run: zip -r ../${{ env.SKILL_NAME }}-${{ github.event.release.tag_name }}.zip ${{ env.SKILL_NAME }}
 
       - name: Upload artifact to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          files: ${{ env.REPO_NAME }}.zip
+          # Uploads the newly versioned zip file
+          files: ${{ env.SKILL_NAME }}-${{ github.event.release.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
