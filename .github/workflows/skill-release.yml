@@ -1,0 +1,46 @@
+name: Build Skill Zip Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-zip:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Get Repository Name
+        # Extracts just the repo name (e.g., 'my-ai-skill' from 'username/my-ai-skill')
+        id: get-name
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+
+      - name: Prepare Skill Folder
+        # Claude Desktop requires the zip to contain a root folder matching the skill name.
+        # This step creates that folder and copies everything over, ignoring .git and .github.
+        run: |
+          mkdir -p build/${{ env.REPO_NAME }}
+          rsync -av . build/${{ env.REPO_NAME }} \
+            --exclude 'build' \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '.gitignore' \
+            --exclude 'eval-workspace' \
+            --exclude '.claude'
+
+      - name: Create Zip Archive
+        # Changes into the build directory so the zip command creates the correct root structure
+        working-directory: build
+        run: zip -r ../${{ env.REPO_NAME }}.zip ${{ env.REPO_NAME }}
+
+      - name: Upload artifact to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.REPO_NAME }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
