@@ -1,7 +1,7 @@
 {
   "name": "ccpm-scheduler",
   "description": "Critical Chain Project Management (CCPM) scheduling skill: builds resource-leveled, buffer-protected schedules from a project network, with calendar-aware availability, a deterministic validator, and buffer-aware Gantt charts.",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "author": {
     "name": "Rudiger Wolf",
     "email": "rudiger.wolf@throughputfocus.com"

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.6.0 — 2026-07-18
+
+- **Engine invocation is now pinned**: `uvx ccpm-scheduler@0.10.0`. The skill's
+  algorithm notes and worked-example numbers are verified against exactly this
+  engine version; adopting a newer engine is a deliberate skill release
+  (re-verify, re-baseline, bump the pin). Motivated by engine v0.9.0 changing
+  the default buffer sizing under the previously-unpinned invocation, which
+  made the engine's real output contradict the skill's own reference docs.
+- **Buffer-sizing methods** (engine v0.9.0): `--buffer-method cap|hchain|rsem`
+  documented throughout — CAP (Σ safety removed, the new engine default, most
+  explainable), HCHAIN (classic 50%-of-chain, the old hard-coded behavior),
+  RSEM (root-squared error). The skill asks the user which method to use;
+  when unsure it gathers two-point estimates and uses the CAP default.
+  algorithm.md Step 6 rewritten (normalization triple, three formulas,
+  achieved-gap shortfall reporting); the separate "SSQ variant" note is
+  subsumed by RSEM.
+- **Worked example re-baselined against engine 0.10.0** with the CAP default:
+  PB 30, promise day 60, and FB1 comes up short — `5 (method wanted 10)` —
+  because the feeding chain is blocked by a resource booking, which the
+  example now teaches as information rather than an error. A new comparison
+  table shows cap/hchain/rsem side by side (promise day 60 / 45 / 46 on the
+  same plan); hchain reproduces the previous baseline. Also corrects C's
+  final placement (5–10, the uniform whole-chain buffer shift) which the
+  previous text had wrong even for the old default.
+- **Engine v0.10.0 diagnostics documented**: the calendar-aware scheduling
+  horizon (long outages/positive lags no longer misreport "no feasible
+  schedule") and the named infeasibility error (task + blocking resources
+  when base capacity is 0), plus guidance on feeding-buffer shortfalls and
+  the summary's derived-estimate counts.
+
 ## 0.5.3 - 2026-07-15
 
 - Skill zip file included to much information. Fix zip file contents.

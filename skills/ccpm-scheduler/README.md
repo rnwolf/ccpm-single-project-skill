@@ -21,9 +21,9 @@ exchange format, so the same engine serves this skill, other tools (e.g.
 
 ## Requirements
 
-- [uv](https://docs.astral.sh/uv/) — the skill runs the CLI as `uvx ccpm-scheduler ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` if you don't have it.
+- [uv](https://docs.astral.sh/uv/) — the skill runs the CLI as `uvx ccpm-scheduler@0.10.0 ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. The version is **pinned** to the engine release the skill's docs and worked example are verified against; the pin is bumped deliberately when the skill is re-verified against a newer engine. Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` if you don't have it.
 
-(No uv? `pip install ccpm-scheduler` puts the `ccpm-scheduler` command on your PATH.)
+(No uv? `pip install ccpm-scheduler==0.10.0` puts the `ccpm-scheduler` command on your PATH.)
 
 ## Installing the skill
 
@@ -60,6 +60,7 @@ F,Commission,10,D;E,red,
 - `predecessor_ids`: semicolon-separated links. A bare id is Finish-to-Start; typed links with lag are supported: `A:SS+2`, `A:FF`, `A:SF`. The network must be acyclic; multiple entry or exit tasks are fine (the scheduler anchors them to synthetic Start/Finish milestones).
 - Every task needs a **positive duration** and **at least one resource** — a task without a resource cannot contend for capacity, so it cannot participate in critical chain identification.
 - If `optimal_duration` is missing, the skill applies the classic 50% cut to `realistic_duration`. If your estimates are *already* optimal (padding-free), say so in the prompt — it changes buffer sizes by 2x.
+- **Buffer sizing method**: `cap` (default — buffers equal the safety removed from the chain, the most explainable rule), `hchain` (classic 50%-of-chain, shorter promise dates), or `rsem` (root-squared error, statistical pooling for two-point estimates). Say e.g. *"use the 50% rule"* to pick one; unsure means the skill asks, or gathers two-point estimates and uses `cap`. On the same plan the promise date can differ by weeks between methods — see `references/algorithm.md`.
 - `url`: optional link to a ticket/wiki page; it is carried into the outputs.
 
 **resources.csv** — `id, name, capacity, url (optional)`; capacity defaults to 1.
@@ -94,11 +95,11 @@ Four deliverables:
 With uv installed there is nothing to set up (the first run fetches the package into uv's cache; subsequent runs are instant):
 
 ```bash
-alias ccpm-scheduler="uvx ccpm-scheduler"
+alias ccpm-scheduler="uvx ccpm-scheduler@0.10.0"
 
 ccpm-scheduler validate tasks.csv resources.csv [calendar.csv]
 ccpm-scheduler build tasks.csv resources.csv [--calendar calendar.csv] \
-    [--out-dir DIR] [--title "My project"]
+    [--buffer-method cap|hchain|rsem] [--out-dir DIR] [--title "My project"]
 ccpm-scheduler check schedule.csv tasks.csv resources.csv [calendar.csv]
 ccpm-scheduler plot schedule.csv gantt.png --resources resources.csv \
     [--calendar calendar.csv] [--title "My project"] [--critical-label "Critical path"]

@@ -32,7 +32,7 @@ The CPM passes, leveling shifts, and chain tracing all use these inequalities in
 ## Step 0 — Normalize
 
 - For each task, `duration = optimal_duration` if given, else `ceil(realistic_duration / 2)`. (Accept the legacy column names `duration_aggressive`/`duration_safe` as aliases.)
-- `safety_removed = realistic_duration - duration` (used for nothing in the 50% buffer rule, but compute it anyway — the SSQ variant needs it).
+- `safety_removed = realistic_duration - duration` (Δ) — the input to the `cap` (default) and `rsem` buffer-sizing methods in Step 6; a task given only an optimal duration derives `realistic = 2 × optimal`, so its Δ = optimal.
 - If several tasks have no successors, add a virtual milestone `END` (duration 0, no resources) whose predecessors are all sink tasks. Likewise, if several tasks have no predecessors, add a virtual `START` milestone (duration 0, no resources) that all entry tasks succeed — the network always flows from one source to one sink. Both virtual nodes are removed from outputs.
 
 ## Step 1 — Validate
@@ -74,16 +74,24 @@ For every non-critical task, find its chain: follow successors until reaching a 
 
 **Merges are per edge, not per chain.** EVERY edge from a non-critical task into a critical-chain task is a merge that needs its own feeding buffer — including edges from a task that belongs to another chain (a shared prefix feeding a second join point, like a protocol task that feeds both trial arms). A chain's tail edge is sized on the chain's tasks; an extra edge from task X is sized on X's backward non-critical closure (X plus every non-critical task reachable through X's predecessors). Yes, a shared task's duration then contributes to more than one buffer — conservative double protection beats an unbuffered merge.
 
-## Step 6 — Buffers (50% rule, default)
+## Step 6 — Buffers (sizing methods; CAP default)
 
-- **Project buffer** `PB = ceil(0.5 × sum of optimal durations of critical-chain tasks)`. Insert at `start = finish of last CC task`, `duration = PB`. Promised completion = end of PB.
-- **Feeding buffer** per feeding chain: `FB = ceil(0.5 × sum of optimal durations of that chain's tasks)`. The feeding chain must finish `FB` days before its join point's start: shift the entire feeding chain earlier by the overlap amount, then place the buffer in the gap `[chain_finish, join.start)`.
+**Estimate normalization** (per task, before any sizing): tasks are always scheduled at their optimal duration; the safety `Δ = realistic − optimal`. A missing optimal derives as `⌈realistic/2⌉` (the classic 50% cut, so `Δ = realistic − ⌈realistic/2⌉`); a missing realistic derives as `2 × optimal` (so `Δ = optimal`). Derived Δs are mechanical, not informed — the summary reports how many tasks in each protected chain had derived estimates, and when most Δs are derived the cap/rsem numbers carry little real information.
+
+**Sizing methods** — one method applies to ALL buffers in a schedule (`--buffer-method`, default `cap`). Sums run over the protected chain's tasks (critical chain for the PB; the feeding chain — or, for an extra merge edge, the feeder's backward non-critical closure — for an FB); results round up:
+
+| Method | Buffer | Character |
+|--------|--------|-----------|
+| `cap` (default) | `Σ Δᵢ` | Cut & Paste: the safety removed from the chain, pooled. Most explainable; with single-point estimates the promise date lands where a traditional plan would, protection pooled instead of hidden inside tasks |
+| `hchain` | `⌈0.5 × Σ optimalᵢ⌉` | classic 50%-of-chain rule (the engine's only behavior before v0.9). Ignores per-task uncertainty; produces visibly shorter promise dates |
+| `rsem` | `⌈√(Σ Δᵢ²)⌉` | root-squared error: statistical pooling, √n growth — smaller buffers on long chains. Needs genuine two-point estimates to mean anything; under-protects correlated risks |
+
+- **Project buffer** `PB = method(critical chain)`. Insert at `start = finish of last CC task`, `duration = PB`. Promised completion = end of PB.
+- **Feeding buffer** per feeding chain: `FB = method(chain)`. The feeding chain must finish `FB` days before its join point's start: shift the entire feeding chain earlier by the overlap amount, then place the buffer in the gap `[chain_finish, join.start)`. When the chain cannot shift the full amount (pinned by day 0, a critical-chain predecessor, the calendar, or a resource conflict — shifted tasks may only move earlier), the buffer gets the achieved gap and the summary reports it as `N (method wanted M)`.
 - A shifting feeding chain **drags its non-critical external predecessors** along (same semantics as a leveling shift) — an ALAP-placed feeder of a feeder must not pin the chain against its join point. Critical-chain tasks never move; they cap the shift instead.
 - **Buffers are at least 1 day.** If a chain cannot shift at all (blocked by a critical-chain predecessor, the calendar, or day 0) and the gap to its join point is zero, do NOT emit a zero-length buffer — omit it and flag the chain in the summary as effectively critical, to be watched as closely as the critical chain. The validator rejects zero-length buffer rows.
 - Feeding-chain shifts can create new resource conflicts → re-run Step 3 restricted to moved tasks (they may only move earlier).
 - After all insertions, if min start < 0, shift **every** task and buffer right uniformly so min start = 0.
-
-SSQ variant (use only if the user asks): buffer = `ceil(sqrt(sum(safety_removed_i²)))` over the chain. Requires real realistic AND optimal estimates per task; mention that it yields smaller buffers on long chains.
 
 Buffers never consume resources and never participate in leveling as demand. Calendars therefore never constrain buffer placement — a buffer is calendar time, and may freely span days on which resources are unavailable.
 

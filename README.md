@@ -56,7 +56,7 @@ Copy `skills/ccpm-scheduler/` into your skills directory:
 
 ## Requirements
 
-- [uv](https://docs.astral.sh/uv/) — the skill runs the scheduling engine as `uvx ccpm-scheduler ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. (No uv? `pip install ccpm-scheduler` works too.)
+- [uv](https://docs.astral.sh/uv/) — the skill runs the scheduling engine as `uvx ccpm-scheduler@<pinned version> ...`, which fetches and caches the [PyPI package](https://pypi.org/project/ccpm-scheduler/) automatically. (No uv? `pip install ccpm-scheduler==<pinned version>` works too — SKILL.md states the current pin.)
 
 ## Releasing
 
@@ -87,13 +87,16 @@ have no update channel — those users re-copy.
 
 **Releasing the engine** happens in the
 [ccpm-scheduler repo](https://github.com/rnwolf/ccpm-scheduler) (its GitHub
-release workflow publishes to PyPI). Because SKILL.md invokes
-`uvx ccpm-scheduler` **unpinned**, every skill user gets the newest engine at
-run time — engine fixes need no skill release at all. The flip side: engine
-behavior can change under an unchanged skill version. Once the engine
-stabilizes at 1.0, consider bounding the invocation in SKILL.md
-(`uvx 'ccpm-scheduler>=1,<2'`) so only compatible engine releases flow
-through automatically.
+release workflow publishes to PyPI). SKILL.md invokes the engine **pinned to
+an exact version** (`uvx ccpm-scheduler@X.Y.Z`), so engine releases do NOT
+reach skill users automatically — deliberately: the skill's algorithm notes
+and worked-example numbers are verified against the pinned version, and
+engine defaults have changed before (v0.9.0 switched the default buffer
+sizing from the 50% rule to CAP, which would have silently contradicted the
+skill's docs under an unpinned invocation). Adopting a new engine version is
+therefore a skill release: re-run the pipeline on `examples/`, re-baseline
+any numbers that changed, bump the pin in SKILL.md (and the version
+mentions in both READMEs), then follow the skill-release steps above.
 
 ## Using it
 
